@@ -195,7 +195,7 @@ kind: DeploymentConfig
 metadata:
   annotations:
     template.alpha.openshift.io/wait-for-ready: 'true'
-  name: mysql-restored
+  name: mysql-cloned
   namespace: mysql-persistent
   labels:
     app: mysql
