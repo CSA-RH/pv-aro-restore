@@ -35,6 +35,10 @@ VALUES
           ('Shreya', 'X', 8);
 EOF
 ```
+### List pod and volumes
+```console
+oc delete dc/mysql pvc/mysql
+```
 
 ### Remove the DeploymentConfig and the pvc
 ```console
