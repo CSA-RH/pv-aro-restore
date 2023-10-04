@@ -48,7 +48,7 @@ oc delete dc/mysql pvc/mysql
 ### Remove the bind from the only existing PV
 ```console
 export DATA_PV=$(oc get pv -o name)
-oc patch pv $DATA_PV \
+oc patch $DATA_PV \
     --type=json -p '[{"op": "remove", "path":"/spec/storageClassName"},{"op": "remove", "path":"/spec/claimRef"}]'
 ```
 
