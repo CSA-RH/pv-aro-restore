@@ -1,12 +1,16 @@
-## Create the entire infrastructure #EMPTY DATABASE
+### Download the manifest mysql-all.yaml
+```console
+curl -s https://raw.githubusercontent.com/CSA-RH/pv-aro-restore/main/mysql-all.yaml > mysql-all.yaml
+```
+### Create the entire infrastructure
 ```console
 oc apply -f mysql-all.yaml
 ```
-## Set to newly created project
+### Set to newly created project
 ```console
 oc project mysql-persistent
 ```
-## Add some data
+### Add some data
 ```console
 oc exec dc/mysql -i -- mysql -u dbops -ppassword123 dbItems <<EOF
 CREATE TABLE Student(
@@ -31,19 +35,19 @@ VALUES
 EOF
 ```
 
-## Remove the DeploymentConfig and the pvc
+### Remove the DeploymentConfig and the pvc
 ```console
 oc delete dc/mysql pvc/mysql
 ```
 
-## Remove the bind from the only existing PV
+### Remove the bind from the only existing PV
 ```console
 export DATA_PV=$(oc get pv -o name)
 oc patch pv $DATA_PV \
     --type=json -p '[{"op": "remove", "path":"/spec/storageClassName"},{"op": "remove", "path":"/spec/claimRef"}]'
 ```
 
-## Create PVC --will remain Pending
+### Create PVC --will remain Pending
 ```console
 cat <<EOF | oc apply -f -
 apiVersion: v1
@@ -63,12 +67,12 @@ spec:
 EOF
 ```
 
-## Associate the PV with the existintg PVC
+### Associate the PV with the existintg PVC
 ```console
 oc patch $DATA_PV -p '{"spec":{"claimRef":{"kind":"PersistentVolumeClaim","name":"mysql-restored","namespace":"mysql-persistent"}}}'
 ```
 
-## Create a DeploymentConfig using that PV
+### Create a DeploymentConfig using that PV
 ```console
 cat <<EOF | oc apply -f -
 apiVersion: apps.openshift.io/v1
@@ -145,7 +149,7 @@ spec:
 EOF
 ```
 
-## Show restored data
+### Show restored data
 ```console
 oc exec dc/mysql-restored -i -- mysql -u dbops -ppassword123 dbItems <<EOF
 SELECT * FROM Student;
