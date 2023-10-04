@@ -11,6 +11,7 @@ oc apply -f mysql-all.yaml
 oc project mysql-persistent
 ```
 ### Add some data
+Must wait a couple of minutes until MySQL is up and running
 ```console
 oc exec dc/mysql -i -- mysql -u dbops -ppassword123 dbItems <<EOF
 CREATE TABLE Student(
