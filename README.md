@@ -160,3 +160,107 @@ oc exec dc/mysql-restored -i -- mysql -u dbops -ppassword123 dbItems <<EOF
 SELECT * FROM Student;
 EOF
 ```
+
+## With volume cloning
+With volume Cloning: https://kubernetes.io/docs/concepts/storage/volume-pvc-datasource/#provisioning
+
+### Create persistent volume claim with datasource cloned
+```console
+cat <<EOF | oc apply -f - 
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+    name: mysql-clone
+    namespace: mysql-persistent
+spec:
+  accessModes:
+  - ReadWriteOnce
+  storageClassName: managed-premium
+  resources:
+    requests:
+      storage: 2Gi
+  dataSource:
+    kind: PersistentVolumeClaim
+    name: mysql-restored
+EOF
+```
+
+### Create new deployment leveraging the new PVC
+
+```console
+```console
+cat <<EOF | oc apply -f -
+apiVersion: apps.openshift.io/v1
+kind: DeploymentConfig
+metadata:
+  annotations:
+    template.alpha.openshift.io/wait-for-ready: 'true'
+  name: mysql-restored
+  namespace: mysql-persistent
+  labels:
+    app: mysql
+spec:
+  replicas: 1
+  selector:
+    name: mysql
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      annotations:
+        backup.velero.io/backup-volumes: mysql-data
+      labels:
+        name: mysql
+        app: mysql
+    spec:
+      containers:
+      - env:
+        - name: MYSQL_USER
+          valueFrom:
+            secretKeyRef:
+              key: database-user
+              name: mysql
+        - name: MYSQL_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: database-password
+              name: mysql
+        - name: MYSQL_ROOT_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: database-root-password
+              name: mysql
+        - name: MYSQL_DATABASE
+          valueFrom:
+            secretKeyRef:
+              key: database-name
+              name: mysql
+        image: "mysql"
+        imagePullPolicy: IfNotPresent
+        name: mysql
+        ports:
+        - containerPort: 3306
+        resources:
+          limits:
+            memory: 512Mi
+        volumeMounts:
+        - mountPath: "/var/lib/mysql/data"
+          name: mysql-data
+      volumes:
+      - name: mysql-data
+        persistentVolumeClaim:
+          claimName: mysql-clone
+  triggers:
+  - imageChangeParams:
+      automatic: true
+      containerNames:
+      - mysql
+      from:
+        kind: ImageStreamTag
+        name: mysql:8.0
+        namespace: openshift
+    type: ImageChange
+  - type: ConfigChange
+EOF
+```
+```
