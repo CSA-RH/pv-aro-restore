@@ -188,7 +188,6 @@ EOF
 ### Create new deployment leveraging the new PVC
 
 ```console
-```console
 cat <<EOF | oc apply -f -
 apiVersion: apps.openshift.io/v1
 kind: DeploymentConfig
@@ -262,5 +261,4 @@ spec:
     type: ImageChange
   - type: ConfigChange
 EOF
-```
 ```
