@@ -1,3 +1,8 @@
+### Description
+Steps to restore a Persistent Volume in ARO from an Azure Disk associated to an existing PV in two different ways: directly linking the PVC to the PV and using Volume Cloning. 
+
+## Linking PVC to PV
+
 ### Download the manifest mysql-all.yaml
 ```console
 curl -s https://raw.githubusercontent.com/CSA-RH/pv-aro-restore/main/mysql-all.yaml > mysql-all.yaml
